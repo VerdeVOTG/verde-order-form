@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verde Order Form</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #7cb342; color: white; padding: 30px; text-align: center; border-radius: 8px; margin-bottom: 30px; }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #333; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: Arial; font-size: 1em; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        .delivery-dates { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0; }
+        .date-option { }
+        .date-option input[type="radio"] { display: none; }
+        .date-option label { display: block; padding: 12px; text-align: center; border: 2px solid #ddd; border-radius: 4px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .date-option input[type="radio"]:checked + label { background: #7cb342; color: white; border-color: #7cb342; }
+        .date-option label:hover { border-color: #7cb342; }
+        .date-option small { display: block; font-size: 11px; font-weight: normal; margin-top: 4px; }
+        .products-list { display: flex; flex-direction: column; gap: 0; margin: 20px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .product-card { background: #f9f9f9; border-bottom: 1px solid #ddd; padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+        .product-card:last-child { border-bottom: none; }
+        .product-info { flex: 1; }
+        .product-name { font-weight: bold; margin-bottom: 5px; }
+        .product-price { color: #7cb342; font-weight: bold; font-size: 1em; }
+        .qty-input { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
+        .qty-input label { margin: 0; font-weight: normal; }
+        .qty-input input { width: 60px; }
+        .order-summary { background: #f0f7ed; border-left: 4px solid #7cb342; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .summary-row.total { border-top: 2px solid #7cb342; padding-top: 10px; font-size: 1.3em; font-weight: bold; color: #7cb342; }
+        button { background: #7cb342; color: white; padding: 12px 30px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; font-weight: bold; margin-right: 10px; margin-top: 10px; }
+        button:hover { background: #558b2f; }
+        .success { display: none; background: #c8e6c9; border: 2px solid #7cb342; color: #2e7d32; padding: 15px; border-radius: 4px; margin-top: 20px; text-align: center; }
+        .section-heading { margin: 30px 0 15px; color: #7cb342; font-size: 1.3em; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Verde on the Go Order Form</h1>
+            <p>Cleveland Clinic</p>
+        </div>
+
+        <form id="orderForm">
+            <h2 style="margin-bottom: 20px; color: #7cb342;">Your Information</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="accountName">Account Name *</label>
+                    <select id="accountName" required>
+                        <option value="">-- Select Account --</option>
+                        <option value="EUCLID">EUCLID</option>
+                        <option value="HILLCREST">HILLCREST</option>
+                        <option value="MARYMOUNT">MARYMOUNT</option>
+                        <option value="SOUTH POINTE">SOUTH POINTE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="contactName">Contact Name *</label>
+                    <input type="text" id="contactName" placeholder="Your name" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="customerEmail">Email *</label>
+                    <input type="email" id="customerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone (Optional)</label>
+                    <input type="tel" id="customerPhone">
+                </div>
+            </div>
+
+            <h2 style="margin: 30px 0 15px; color: #7cb342;">Delivery Date</h2>
+            <p style="color: #666; margin-bottom: 15px;">Select your preferred delivery date:</p>
+            <div class="delivery-dates" id="deliveryDates"></div>
+
+            <h2 style="margin: 30px 0 15px; color: #7cb342;">Select Your Items</h2>
+            <div class="products-list" id="productsGrid"></div>
+
+            <div class="order-summary">
+                <div class="summary-row">
+                    <span>Items:</span>
+                    <span id="itemCount">0</span>
+                </div>
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal">$0.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Order Total:</span>
+                    <span id="orderTotal">$0.00</span>
+                </div>
+            </div>
+
+            <button type="submit">Place Order & Send Receipt</button>
+            <button type="reset">Clear Form</button>
+            <div class="success" id="successMessage">✓ Order received! Check your email for a receipt.</div>
+        </form>
+    </div>
+
+    <script>
+        var DEPLOYMENT_URL = "YOUR_DEPLOYMENT_URL_HERE";
+
+        var products = [
+            { name: "VGG Breakfast Sandwich", price: 3.50 },
+            { name: "VGG Breakfast Wrap", price: 3.50 },
+            { name: "VGG Kids Lunch Box", price: 3.50 },
+            { name: "VGG Salad Caesar", price: 4.00 },
+            { name: "VGG Salad Livin on the Veg", price: 4.00 },
+            { name: "VGG Salad Cobb", price: 5.95 },
+            { name: "VGG Salad Mesa Verde", price: 5.95 },
+            { name: "VGG Salad Quinoa Get a What What", price: 5.95 },
+            { name: "VGG Salad Strawberry Fields", price: 5.95 },
+            { name: "VGG Salad Yes Chef", price: 4.00 },
+            { name: "VGG Sand. PB & J", price: 3.50 },
+            { name: "VGG Sand. Bread Turkey", price: 3.50 },
+            { name: "VGG Sand. Chicken Salad", price: 5.75 },
+            { name: "VGG Sand. Ciabatta Caprese", price: 5.95 },
+            { name: "VGG Sand. Ciabatta Italian", price: 5.50 },
+            { name: "VGG Sand. Ciabatta Turkey", price: 5.50 },
+            { name: "VGG Sand. Ciabatta Turkey Apple Cheddar", price: 5.50 },
+            { name: "VGG Sand. Egg Salad", price: 3.95 },
+            { name: "VGG Sand. Slider Duo", price: 3.50 },
+            { name: "VGG Sand. Slider Trio", price: 5.95 },
+            { name: "VGG Snack Box Board in a Box", price: 6.50 },
+            { name: "VGG Snack Box Chicken Salad Bento", price: 5.50 },
+            { name: "VGG Snack Cup Chicken Salad", price: 4.00 },
+            { name: "VGG Snack Cup Diy Snack Mixes", price: 2.95 },
+            { name: "VGG Snack Cup Egg-stra Protein Cup", price: 3.25 },
+            { name: "VGG Snack Cup Energy Bites", price: 3.50 },
+            { name: "VGG Snack Cup Fruit - Grapes", price: 3.25 },
+            { name: "VGG Snack Cup Fruit - Mixed", price: 3.50 },
+            { name: "VGG Snack Cup Fruit - Seasonal", price: 3.50 },
+            { name: "VGG Snack Cup Hummus Dipper", price: 3.50 },
+            { name: "VGG Snack Cup Nutella Strawberry", price: 3.50 },
+            { name: "VGG Snack Cup Oats - Seasonal", price: 3.50 },
+            { name: "VGG Snack Cup Oats Pina", price: 3.50 },
+            { name: "VGG Snack Cup Pesto Pasta Salad", price: 4.00 },
+            { name: "VGG Snack Cup Sesame Noodles", price: 4.00 },
+            { name: "VGG Snack Cup Egg Salad", price: 4.00 },
+            { name: "VGG Snack Cup S'mores", price: 3.25 },
+            { name: "VGG Snack Cup Shortcake", price: 3.50 },
+            { name: "VGG Snack Cup Sweet and Savory", price: 4.00 },
+            { name: "VGG Snack Cup Veg - Carrot", price: 2.95 },
+            { name: "VGG Snack Cup Yogurt Honey Granola", price: 3.50 },
+            { name: "VGG Snack Cup Yogurt Berry", price: 4.25 },
+            { name: "VGG Wrap Chicken Caesar", price: 5.50 },
+            { name: "VGG Wrap Chicken Salad", price: 5.50 },
+            { name: "VGG Wrap Chicken Salad Curry", price: 5.50 },
+            { name: "VGG Wrap Chicken Salad Buff", price: 5.50 },
+            { name: "VGG Wrap Italian", price: 5.00 },
+            { name: "VGG Wrap Turkey Club", price: 5.95 }
+        ];
+
+        function getCutoffTime(dayName) {
+            if (dayName === 'Monday') return 'Due Friday by 4pm';
+            if (dayName === 'Wednesday') return 'Due Monday by 4pm';
+            if (dayName === 'Friday') return 'Due Wednesday by 4pm';
+            return '';
+        }
+
+        function generateDeliveryDates() {
+            var today = new Date();
+            var dates = [];
+            for (var i = 1; i <= 14; i++) {
+                var checkDate = new Date(today);
+                checkDate.setDate(today.getDate() + i);
+                var dayOfWeek = checkDate.getDay();
+                if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) {
+                    var dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek];
+                    var month = checkDate.getMonth() + 1;
+                    var day = checkDate.getDate();
+                    var formattedDate = dayName + ', ' + month + '/' + day;
+                    var dateValue = checkDate.getFullYear() + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+                    dates.push({
+                        display: formattedDate,
+                        value: dateValue,
+                        dayName: dayName
+                    });
+                }
+            }
+            return dates;
+        }
+
+        function renderDeliveryDates() {
+            var dates = generateDeliveryDates();
+            var html = '';
+            for (var i = 0; i < dates.length; i++) {
+                var date = dates[i];
+                var id = 'date' + i;
+                var cutoff = getCutoffTime(date.dayName);
+                html += '<div class="date-option">' +
+                    '<input type="radio" id="' + id + '" name="deliveryDate" value="' + date.value + '" data-display="' + date.display + '">' +
+                    '<label for="' + id + '"><strong>' + date.display + '</strong><br><small style="color: #666;">' + cutoff + '</small></label>' +
+                    '</div>';
+            }
+            document.getElementById('deliveryDates').innerHTML = html;
+        }
+
+        function renderProducts() {
+            var html = '';
+            for (var i = 0; i < products.length; i++) {
+                var product = products[i];
+                html += '<div class="product-card">' +
+                    '<div class="product-info">' +
+                    '<div class="product-name">' + product.name + '</div>' +
+                    '<div class="product-price">$' + product.price.toFixed(2) + '</div>' +
+                    '</div>' +
+                    '<div class="qty-input">' +
+                    '<label for="qty' + i + '">Qty:</label>' +
+                    '<input type="text" id="qty' + i + '" value="0" data-product-index="' + i + '" class="quantity-input">' +
+                    '</div>' +
+                    '</div>';
+            }
+            document.getElementById('productsGrid').innerHTML = html;
+
+            var inputs = document.querySelectorAll('.quantity-input');
+            for (var i = 0; i < inputs.length; i++) {
+                inputs[i].addEventListener('change', updateSummary);
+                inputs[i].addEventListener('input', updateSummary);
+            }
+        }
+
+        function updateSummary() {
+            var totalItems = 0;
+            var subtotal = 0;
+            var inputs = document.querySelectorAll('.quantity-input');
+            for (var i = 0; i < inputs.length; i++) {
+                var index = parseInt(inputs[i].getAttribute('data-product-index'));
+                var qty = parseInt(inputs[i].value) || 0;
+                var price = products[index].price;
+                totalItems = totalItems + qty;
+                subtotal = subtotal + (qty * price);
+            }
+            document.getElementById('itemCount').textContent = totalItems;
+            document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('orderTotal').textContent = '$' + subtotal.toFixed(2);
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var accountName = document.getElementById('accountName').value;
+            var contactName = document.getElementById('contactName').value;
+            var customerEmail = document.getElementById('customerEmail').value;
+            var customerPhone = document.getElementById('customerPhone').value;
+            var deliveryDateRadio = document.querySelector('input[name="deliveryDate"]:checked');
+
+            if (!deliveryDateRadio) {
+                alert('Please select a delivery date');
+                return;
+            }
+
+            var deliveryDate = deliveryDateRadio.value;
+            var deliveryDateDisplay = deliveryDateRadio.getAttribute('data-display');
+
+            var orderItems = [];
+            var orderTotal = 0;
+            var inputs = document.querySelectorAll('.quantity-input');
+
+            for (var i = 0; i < inputs.length; i++) {
+                var index = parseInt(inputs[i].getAttribute('data-product-index'));
+                var qty = parseInt(inputs[i].value) || 0;
+
+                if (qty > 0) {
+                    var product = products[index];
+                    var itemTotal = qty * product.price;
+                    orderItems.push({
+                        product: product.name,
+                        qty: qty,
+                        price: product.price,
+                        itemTotal: itemTotal
+                    });
+                    orderTotal = orderTotal + itemTotal;
+                }
+            }
+
+            if (orderItems.length === 0) {
+                alert('Please select at least one item');
+                return;
+            }
+
+            var orderData = {
+                accountName: accountName,
+                contactName: contactName,
+                customerEmail: customerEmail,
+                customerPhone: customerPhone,
+                deliveryDate: deliveryDate,
+                deliveryDateDisplay: deliveryDateDisplay,
+                orderItems: orderItems,
+                orderTotal: orderTotal,
+                timestamp: new Date().toLocaleString()
+            };
+
+            fetch(DEPLOYMENT_URL, {
+                method: 'POST',
+                body: JSON.stringify(orderData)
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(result) {
+                if (result.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    setTimeout(function() {
+                        document.getElementById('orderForm').reset();
+                        updateSummary();
+                        document.getElementById('successMessage').style.display = 'none';
+                    }, 3000);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            })
+            .catch(function(error) {
+                alert('Error submitting order: ' + error);
+            });
+        });
+
+        renderDeliveryDates();
+        renderProducts();
+    </script>
+</body>
+</html>
